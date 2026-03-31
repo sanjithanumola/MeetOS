@@ -1,0 +1,7 @@
+{
+  "name": "AI Meeting Intelligence Platform",
+  "description": "An advanced SaaS platform for meeting transcription, AI analysis, task management, and team productivity insights.",
+  "requestFramePermissions": [
+    "microphone"
+  ]
+}
