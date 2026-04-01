@@ -8,12 +8,18 @@ import Tasks from './pages/Tasks';
 import Auth from './pages/Auth';
 import Settings from './pages/Settings';
 import Layout from './components/Layout';
+import { ErrorBoundary } from './components/ErrorBoundary';
 
 export default function App() {
   const [session, setSession] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    if (!supabase) {
+      setLoading(false);
+      return;
+    }
+
     // Check active session
     const initSession = async () => {
       try {
@@ -44,6 +50,11 @@ export default function App() {
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-black"></div>
       </div>
     );
+  }
+
+  // If supabase is missing, we show the ErrorBoundary manually or let it catch errors later
+  if (!supabase) {
+    throw new Error("Supabase is not configured. Please check your VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY environment variables.");
   }
 
   return (

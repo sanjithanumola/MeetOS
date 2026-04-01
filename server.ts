@@ -32,7 +32,13 @@ const genAI = new GoogleGenAI({
 // Supabase Setup
 const supabaseUrl = process.env.VITE_SUPABASE_URL || "";
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || "";
-const supabase = createClient(supabaseUrl, supabaseServiceKey);
+
+let supabase: any;
+if (supabaseUrl && supabaseServiceKey) {
+  supabase = createClient(supabaseUrl, supabaseServiceKey);
+} else {
+  console.error("Supabase environment variables are missing. Database features will be disabled.");
+}
 
 // Multer Setup
 const upload = multer({ dest: "uploads/" });
@@ -87,6 +93,9 @@ app.post("/api/meetings/save", async (req, res) => {
     }
 
     // Save to Supabase
+    if (!supabase) {
+      return res.status(500).json({ error: "Database not configured" });
+    }
     const { data, error } = await supabase
       .from("meetings")
       .insert([
@@ -115,6 +124,7 @@ app.post("/api/meetings/save", async (req, res) => {
 
 // Get all meetings
 app.get("/api/meetings", async (req, res) => {
+  if (!supabase) return res.status(500).json({ error: "Database not configured" });
   const { userId } = req.query;
   const { data, error } = await supabase
     .from("meetings")
@@ -128,6 +138,7 @@ app.get("/api/meetings", async (req, res) => {
 
 // Get single meeting
 app.get("/api/meetings/:id", async (req, res) => {
+  if (!supabase) return res.status(500).json({ error: "Database not configured" });
   const { id } = req.params;
   const { data, error } = await supabase
     .from("meetings")
@@ -144,6 +155,8 @@ app.post("/api/meetings/:id/chat", async (req, res) => {
   try {
     const { id } = req.params;
     const { message, history } = req.body;
+
+    if (!supabase) return res.status(500).json({ error: "Database not configured" });
 
     const { data: meeting } = await supabase
       .from("meetings")
