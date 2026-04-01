@@ -2,6 +2,7 @@ import React, { useEffect, useState, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { socket } from '../lib/socket';
+import { chatWithMeeting } from '../lib/gemini';
 import { 
   Clock, 
   CheckCircle2, 
@@ -19,7 +20,6 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { format } from 'date-fns';
-import axios from 'axios';
 
 export default function MeetingDetail() {
   const { id } = useParams();
@@ -89,11 +89,13 @@ export default function MeetingDetail() {
     setChatLoading(true);
 
     try {
-      const response = await axios.post(`/api/meetings/${id}/chat`, {
-        message: chatMessage,
-        history: chatHistory
-      });
-      setChatHistory(prev => [...prev, { role: 'assistant', content: response.data.reply }]);
+      const reply = await chatWithMeeting(
+        meeting.transcript,
+        meeting.analysis,
+        chatMessage,
+        chatHistory
+      );
+      setChatHistory(prev => [...prev, { role: 'assistant', content: reply }]);
     } catch (err) {
       console.error(err);
     } finally {

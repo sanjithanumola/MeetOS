@@ -49,7 +49,8 @@ if (!fs.existsSync("uploads")) {
 }
 
 app.use(cors());
-app.use(express.json());
+app.use(express.json({ limit: "50mb" }));
+app.use(express.urlencoded({ limit: "50mb", extended: true }));
 
 // Socket.IO
 io.on("connection", (socket) => {
@@ -148,46 +149,6 @@ app.get("/api/meetings/:id", async (req, res) => {
 
   if (error) return res.status(500).json({ error: error.message });
   res.json(data);
-});
-
-// Chat with Meeting Assistant
-app.post("/api/meetings/:id/chat", async (req, res) => {
-  try {
-    const { id } = req.params;
-    const { message, history } = req.body;
-
-    if (!supabase) return res.status(500).json({ error: "Database not configured" });
-
-    const { data: meeting } = await supabase
-      .from("meetings")
-      .select("transcript, analysis")
-      .eq("id", id)
-      .single();
-
-    if (!meeting) return res.status(404).json({ error: "Meeting not found" });
-
-    const chat = genAI.chats.create({
-      model: "gemini-3-flash-preview",
-      history: history.map((h: any) => ({
-        role: h.role === 'assistant' ? 'model' : 'user',
-        parts: [{ text: h.content }],
-      })),
-      config: {
-        systemInstruction: `You are an AI assistant for a meeting intelligence platform. You have access to the transcript and analysis of a meeting. 
-        Answer questions based on this context. 
-        Meeting Context:
-        Transcript: ${meeting.transcript}
-        Analysis: ${JSON.stringify(meeting.analysis)}`,
-      },
-    });
-
-    // Note: sendMessage only accepts the message parameter in @google/genai
-    const result = await chat.sendMessage({ message });
-    res.json({ reply: result.text });
-  } catch (error: any) {
-    console.error("Chat error:", error);
-    res.status(500).json({ error: error.message });
-  }
 });
 
 // Vite middleware for development

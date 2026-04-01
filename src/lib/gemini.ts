@@ -13,7 +13,7 @@ const ai = new GoogleGenAI({
   apiKey: getApiKey(),
 });
 
-export const geminiModel = "gemini-flash-latest";
+export const geminiModel = "gemini-3-flash-preview";
 
 export async function transcribeAudio(file: File): Promise<string> {
   const base64Data = await fileToBase64(file);
