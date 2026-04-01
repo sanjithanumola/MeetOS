@@ -7,6 +7,7 @@ import Upload from './pages/Upload';
 import Tasks from './pages/Tasks';
 import Auth from './pages/Auth';
 import Settings from './pages/Settings';
+import Setup from './pages/Setup';
 import Layout from './components/Layout';
 import { ErrorBoundary } from './components/ErrorBoundary';
 
@@ -52,9 +53,9 @@ export default function App() {
     );
   }
 
-  // If supabase is missing, we show the ErrorBoundary manually or let it catch errors later
+  // If supabase is missing, show the Setup guide
   if (!supabase) {
-    throw new Error("Supabase is not configured. Please check your VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY environment variables.");
+    return <Setup />;
   }
 
   return (
