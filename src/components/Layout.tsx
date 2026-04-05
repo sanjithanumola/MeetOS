@@ -1,10 +1,11 @@
-import { Outlet, Link, useLocation } from 'react-router-dom';
+import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { 
   LayoutDashboard, 
   Upload as UploadIcon, 
   CheckSquare, 
   Settings, 
+  LogOut,
   Brain,
   ChevronRight
 } from 'lucide-react';
@@ -19,6 +20,12 @@ const navItems = [
 
 export default function Layout() {
   const location = useLocation();
+  const navigate = useNavigate();
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    navigate('/auth');
+  };
 
   return (
     <div className="flex h-screen bg-neutral-50 font-sans">
@@ -53,6 +60,16 @@ export default function Layout() {
             );
           })}
         </nav>
+
+        <div className="p-4 border-t border-neutral-100">
+          <button
+            onClick={handleLogout}
+            className="flex items-center gap-3 px-4 py-3 w-full text-neutral-500 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all font-bold text-sm"
+          >
+            <LogOut className="w-5 h-5" />
+            <span>Sign Out</span>
+          </button>
+        </div>
       </aside>
 
       {/* Main Content */}

@@ -30,27 +30,38 @@ export default function Dashboard() {
   }, []);
 
   const fetchData = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
 
-    const { data: meetingsData } = await supabase
-      .from('meetings')
-      .select('*')
-      .eq('user_id', user.id)
-      .order('created_at', { ascending: false });
+      const { data: meetingsData, error } = await supabase
+        .from('meetings')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false });
 
-    if (meetingsData) {
-      setMeetings(meetingsData);
-      
-      // Calculate stats
-      const totalTasks = meetingsData.reduce((acc, m) => acc + (m.analysis?.actionItems?.length || 0), 0);
-      setStats({
-        total: meetingsData.length,
-        tasks: totalTasks,
-        productivity: 85 // Mock productivity score
-      });
+      if (error) throw error;
+
+      if (meetingsData) {
+        setMeetings(meetingsData);
+        
+        // Calculate stats
+        const totalTasks = meetingsData.reduce((acc, m) => acc + (m.analysis?.actionItems?.length || 0), 0);
+        setStats({
+          total: meetingsData.length,
+          tasks: totalTasks,
+          productivity: 85 // Mock productivity score
+        });
+      }
+    } catch (err: any) {
+      console.error('Fetch error:', err);
+      // If it's a fetch error, it's likely the Supabase URL
+      if (err.message === 'Failed to fetch') {
+        alert('Database connection failed. Please check your Supabase URL in settings.');
+      }
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   return (

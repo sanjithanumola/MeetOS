@@ -67,12 +67,21 @@ export default function Upload() {
         title: title || (file ? file.name : 'Pasted Transcript'),
         transcript: finalTranscript,
         analysis
+      }).catch(err => {
+        if (err.message === 'Network Error' || err.code === 'ERR_NETWORK') {
+          throw new Error('Failed to connect to the backend server. Please ensure the server is running.');
+        }
+        throw err;
       });
 
       navigate(`/meetings/${response.data.id}`);
     } catch (err: any) {
       console.error('Processing error:', err);
-      setError(err.message || 'An unexpected error occurred during processing');
+      if (err.message === 'Failed to fetch') {
+        setError('Connection failed. Please check your internet connection and Supabase configuration.');
+      } else {
+        setError(err.message || 'An unexpected error occurred during processing');
+      }
       setStep(2);
     } finally {
       setUploading(false);
