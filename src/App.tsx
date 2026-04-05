@@ -5,45 +5,14 @@ import Dashboard from './pages/Dashboard';
 import MeetingDetail from './pages/MeetingDetail';
 import Upload from './pages/Upload';
 import Tasks from './pages/Tasks';
-import Auth from './pages/Auth';
 import Settings from './pages/Settings';
-import Setup from './pages/Setup';
 import Layout from './components/Layout';
 import { ErrorBoundary } from './components/ErrorBoundary';
 
 export default function App() {
-  const [session, setSession] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    if (!supabase) {
-      setLoading(false);
-      return;
-    }
-
-    // Check active session
-    const initSession = async () => {
-      try {
-        const { data: { session: initialSession } } = await supabase.auth.getSession();
-        setSession(initialSession);
-      } catch (err) {
-        console.error('Error getting session:', err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    initSession();
-
-    // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      console.log('Auth state changed:', _event, session?.user?.email);
-      setSession(session);
-      setLoading(false);
-    });
-
-    return () => subscription.unsubscribe();
-  }, []);
+  // We'll bypass session and setup checks as requested
+  const session = { user: { id: 'dummy-user' } }; // Mock session
+  const loading = false;
 
   if (loading) {
     return (
@@ -53,31 +22,17 @@ export default function App() {
     );
   }
 
-  // If supabase is missing, show the Setup guide
-  if (!supabase) {
-    return <Setup />;
-  }
-
   return (
     <Router>
       <Routes>
-        <Route 
-          path="/auth" 
-          element={!session ? <Auth /> : <Navigate to="/" replace />} 
-        />
-        
-        {session ? (
-          <Route path="/" element={<Layout />}>
-            <Route index element={<Dashboard />} />
-            <Route path="upload" element={<Upload />} />
-            <Route path="meetings/:id" element={<MeetingDetail />} />
-            <Route path="tasks" element={<Tasks />} />
-            <Route path="settings" element={<Settings />} />
-            <Route path="*" element={<Navigate to="/" replace />} />
-          </Route>
-        ) : (
-          <Route path="*" element={<Navigate to="/auth" replace />} />
-        )}
+        <Route path="/" element={<Layout />}>
+          <Route index element={<Dashboard />} />
+          <Route path="upload" element={<Upload />} />
+          <Route path="meetings/:id" element={<MeetingDetail />} />
+          <Route path="tasks" element={<Tasks />} />
+          <Route path="settings" element={<Settings />} />
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Route>
       </Routes>
     </Router>
   );

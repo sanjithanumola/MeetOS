@@ -8,6 +8,30 @@ if (!supabaseUrl || !supabaseAnonKey) {
 }
 
 // Only create client if URL is present to avoid crash
-export const supabase = supabaseUrl 
+// If missing, we use a dummy object to prevent runtime errors
+export const supabase = (supabaseUrl && supabaseAnonKey)
   ? createClient(supabaseUrl, supabaseAnonKey)
-  : null as any;
+  : {
+      auth: {
+        getUser: async () => ({ data: { user: { id: 'dummy-user', email: 'guest@example.com' } }, error: null }),
+        getSession: async () => ({ data: { session: { user: { id: 'dummy-user' } } }, error: null }),
+        onAuthStateChange: () => ({ data: { subscription: { unsubscribe: () => {} } } }),
+        signOut: async () => ({ error: null }),
+      },
+      from: () => ({
+        select: () => ({
+          eq: () => ({
+            order: () => Promise.resolve({ data: [], error: null }),
+            single: () => Promise.resolve({ data: null, error: null }),
+          }),
+          order: () => Promise.resolve({ data: [], error: null }),
+        }),
+        insert: () => Promise.resolve({ data: null, error: null }),
+        update: () => ({
+          eq: () => Promise.resolve({ data: null, error: null }),
+        }),
+        delete: () => ({
+          eq: () => Promise.resolve({ data: null, error: null }),
+        }),
+      }),
+    } as any;
